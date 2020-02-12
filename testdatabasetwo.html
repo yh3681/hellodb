@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html" charset="utf-8">
+
+    <script type="text/javascript">
+        //prefixes of implementation that we want to test
+        window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+        
+        //prefixes of window.IDB objects
+        window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
+        
+        window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange ||
+         window.msIDBKeyRange;
+        
+        if (!window.indexedDB) {
+            window.alert("Your browser doesn't support a stable version of IndexedDB.")
+        }
+        
+        const employeeData = [
+            { id: "00-01", name: "Mike", age: 35, email: "mike@mail.com" },
+            { id: "00-02", name: "Krishnan", age: 32, email: "krishnan@mail.com" }
+            
+        ];
+        
+        var db;
+        var request = window.indexedDB.open("newDatabase", 1);
+        
+        request.onerror = function(event){
+            console.log("error:", request.error);
+            
+        };
+        
+        request.onsuccess = function(event){
+            db = request.result;
+            console.log("success:" + db);
+            
+        };
+        
+        request.onupgradeneeded = function(event){
+            var db = event.target.result;
+            var objectStore = db.createObjectStore("employee", {keyPath:"id"});
+            //console.log('xxx');
+            for (var i in employeeData){
+                objectStore.add(employeeData[i]);
+                //console.log(i);
+            }
+        }
+        
+       
+        
+        function add() {
+            var request = db.transaction(["employee"], "readwrite")
+            .objectStore("employee")
+            .add({ id: "00-04", name: "Kenny", age: 19, email: "kenny@planet.org" });
+           
+            request.onsuccess = function(event) {
+               alert("Kenny has been added to your database.");
+            };
+           
+            request.onerror = function(event) {
+               alert("Unable to add data\r\nKenny is aready exist in your database! ");
+            }
+         }
+        
+        function add1() {
+           
+          var vId = document.getElementById('txtId');
+          var vName = document.getElementById('txtName'); 
+          var vAge = document.getElementById('txtAge');   
+          var vEmail = document.getElementById('txtEmail');      
+       
+        var myData = [{ id: txtId.value, name: txtName.value, age: txtAge.value, email: txtEmail.value }];
+
+            console.log(myData);
+            
+          //var request = db.transaction(["employee"], "readwrite").objectStore("employee").add(myData);    
+            var request = db.transaction(["employee"], "readwrite")
+            .objectStore("employee")
+            .add(myData[0]);
+            
+            request.onsuccess = function(event) {
+               alert(txtName.value + " added to your database.");
+            };
+           
+            request.onerror = function(event) {
+               alert("Unable to add data\r\n" + txtName.value
+                     + " is aready exist in your database! ");
+            }
+        console.log('xxx');
+        }
+        
+        
+        function read() {
+            var transaction = db.transaction(["employee"]);
+            var objectStore = transaction.objectStore("employee");
+            var request = objectStore.get("00-03");
+  
+            request.onerror = function(event) {
+               alert("Unable to retrieve data from database!");
+            };
+
+            request.onsuccess = function(event) {
+               // Do something with the request.result!
+               if(request.result) {
+                   alert(request.result.name);
+                   console.log("done!");
+               } else {
+                  alert("Kenny couldn't be found in your database!");
+               }
+            };
+
+                //  alert("Name: " + request.result.name + ", Age: " + request.result.age + ", Email: " + request.result.email);
+
+         }
+        
+        function readAll() {
+            var objectStore = db.transaction("employee").objectStore("employee");
+           
+            objectStore.openCursor().onsuccess = function(event) {
+               var cursor = event.target.result;
+               
+                if (cursor) {
+                    console.log("Read all done!");
+                    alert("Name: " + cursor.value.name + " | Age: " + cursor.value.age + " | Email" + cursor.value.email);
+                  cursor.continue();
+               } else {
+                  alert("No more entries!");
+               }
+                
+                
+
+            };
+         }
+    </script>
+    
+  <title>Test Database Two</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />  
+  <link rel="apple-touch-icon" href="images/hello-icon-152.png">   
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+  <meta name="theme-color" content="white"/>
+  <meta name="theme-color" content="white"/>  
+  <meta name="apple-mobile-web-app-capable" content="yes">  
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"> 
+  <meta name="apple-mobile-web-app-title" content="Hello World"> 
+  <meta name="msapplication-TileImage" content="images/hello-icon-144.png">  
+  <meta name="msapplication-TileColor" content="#FFFFFF">    
+    </head>
+<body class="fullscreen">
+  <div class="container">
+    <h1 class="title">Hello Database Example</h1>
+    <br/><br/><br/><br/>
+      <input type="button" value="Read" onclick="read()"/><br/><br/>
+      <input type="button" value="Read All" onclick="readAll()"/><br/><br/>
+    <input type="text" id="txtId" value="" placeholder="Id"/>
+    <input type="text" id="txtName" value="" placeholder="Name"/>
+    <input type="text" id="txtAge" value="" placeholder="Age"/>
+    <input type="text" id="txtEmail" value="" placeholder="Email"/>
+
+    <input type="button" value="Add" onclick="add1()" />
+      
+      <button onclick = "read()">Read </button>
+      <button onclick = "readAll()">Read all </button>
+      <button onclick = "add()">Add default </button>
+  </div>
+
+</body>
+</html>
